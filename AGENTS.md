@@ -15,3 +15,12 @@ You are the lead developer for **AuraCast**, a prescriptive analytics weather sy
 ## Coding Standards
 - **Software QA:** Every new backend feature must include a corresponding test in the `backend/tests/` folder using `pytest`.
 - **Validation:** Use Pydantic models in FastAPI to ensure incoming weather data is strictly typed before the recommendation logic runs.
+- 
+## Visual Design Reference (CRUCIAL)
+- **UI Blueprint:** Use the attached image `image_0.png` as the *absolute blueprint* for the dashboard's layout, color palette (Dark Mode with 2D icons), and information hierarchy.
+- **Layout Hierarchy:**
+  1. Top Left: Location/Primary Forecast (e.g., Dhaka, 28°C).
+  2. Bottom Left: "Others Countries" list.
+  3. Top Right: "Today’s Highlight" (Wind, Humidity, UV, Sunrise/Sunset).
+  4. Bottom Right: "10-Day Forecast" grid.
+- **New Section (REQUIRED):** You must replace the "Others Countries" section with a *matching, card-based section* titled **"Daily Smart Recommendations"**.
