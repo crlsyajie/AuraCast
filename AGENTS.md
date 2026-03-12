@@ -24,3 +24,10 @@ You are the lead developer for **AuraCast**, a prescriptive analytics weather sy
   3. Top Right: "Today’s Highlight" (Wind, Humidity, UV, Sunrise/Sunset).
   4. Bottom Right: "10-Day Forecast" grid.
 - **New Section (REQUIRED):** You must replace the "Others Countries" section with a *matching, card-based section* titled **"Daily Smart Recommendations"**.
+## Database & Persistence
+- **Choice:** PostgreSQL (using SQLAlchemy or Tortoise ORM in FastAPI).
+- **Architecture:** Use a `models/` folder in the backend. 
+- **Tracking:** We need to store:
+  1. `WeatherSnapshots`: Raw data from OpenWeather.
+  2. `UserActions`: Which recommendations the user "accepted" or "ignored" (crucial for future ML training).
+- **Migrations:** Use `Alembic` for database migrations.
