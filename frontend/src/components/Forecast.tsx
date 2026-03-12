@@ -1,7 +1,7 @@
 import { CloudRain, CloudSun, CloudLightning, Snowflake, Cloud, Sun } from "lucide-react";
 
 export function Forecast({ data }: { data: any }) {
-  if (!data) return <div className="bg-[#1c1c21] rounded-3xl p-6 flex-1 text-center">Loading...</div>;
+  if (!data || !data.forecast || !data.forecast.list) return <div className="bg-[#1c1c21] rounded-3xl p-6 flex-1 text-center">Loading...</div>;
 
   const forecastList = data.forecast.list;
 

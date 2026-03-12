@@ -1,7 +1,7 @@
 import { MapPin, CloudRain, Sun, Cloud, Snowflake } from "lucide-react";
 
 export function Location({ data }: { data: any }) {
-  if (!data) return <div className="bg-[#1c1c21] rounded-3xl p-6 relative flex-1 text-center">Loading...</div>;
+  if (!data || !data.current) return <div className="bg-[#1c1c21] rounded-3xl p-6 relative flex-1 text-center">Loading...</div>;
 
   const current = data.current;
   const temp = Math.round(current.main.temp);

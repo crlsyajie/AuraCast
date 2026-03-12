@@ -22,6 +22,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
             pop: derived.pop,
             uvi: derived.uvi,
             wind: derived.wind,
+            humidity: derived.humidity,
           }),
         });
         const data = await res.json();
