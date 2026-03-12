@@ -1,7 +1,7 @@
 import { Wind, Droplets, Sun, Eye, Sunrise, Sunset } from "lucide-react";
 
 export function Highlight({ data }: { data: any }) {
-  if (!data) return <div className="bg-[#1c1c21] rounded-3xl p-6 h-full flex items-center justify-center">Loading...</div>;
+  if (!data || !data.current || !data.derived) return <div className="bg-[#1c1c21] rounded-3xl p-6 h-full flex items-center justify-center">Loading...</div>;
 
   const current = data.current;
   const windSpeed = (current.wind.speed * 3.6).toFixed(2); // m/s to km/h

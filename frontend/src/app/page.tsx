@@ -6,6 +6,7 @@ import { ActionPlan } from "@/components/ActionPlan";
 import { Highlight } from "@/components/Highlight";
 import { Forecast } from "@/components/Forecast";
 import { Sidebar } from "@/components/Sidebar";
+import { RecentHistory } from "@/components/RecentHistory";
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<any>(null);
@@ -24,9 +25,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#101014] text-white overflow-hidden p-6 rounded-[2rem] m-4">
+    <div className="flex min-h-screen bg-[#101014] text-white p-6 rounded-[2rem] m-4">
       <Sidebar />
-      <main className="flex-1 flex flex-col ml-8">
+      <main className="flex-1 flex flex-col ml-8 overflow-y-auto">
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
           <div>
@@ -73,6 +74,11 @@ export default function Home() {
                <Forecast data={weatherData} />
              </div>
           </div>
+        </div>
+
+        {/* Recent History */}
+        <div className="mt-8">
+          <RecentHistory />
         </div>
       </main>
     </div>
