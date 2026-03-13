@@ -14,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchWeather() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/weather?lat=23.8103&lon=90.4125`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/weather?lat=13.7559&lon=121.0597`);
         const data = await res.json();
         setWeatherData(data);
       } catch (e) {
@@ -31,7 +31,7 @@ export default function Home() {
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-gray-400 text-sm">Hi, Kajal</h1>
+            <h1 className="text-gray-400 text-sm">Hi, Jules</h1>
             <h2 className="text-2xl font-bold">Good Morning</h2>
           </div>
           <div className="flex items-center space-x-4">

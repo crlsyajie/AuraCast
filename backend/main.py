@@ -98,7 +98,7 @@ def get_history(db: Session = Depends(get_db)):
     return history
 
 @app.get("/v1/weather")
-async def get_weather(lat: float = 23.8103, lon: float = 90.4125):
+async def get_weather(lat: float = 13.7559, lon: float = 121.0597):
     api_key = os.getenv("OPENWEATHER_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="API key not configured")
