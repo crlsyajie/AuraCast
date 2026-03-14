@@ -101,7 +101,28 @@ def get_history(db: Session = Depends(get_db)):
 async def get_weather(lat: float = 13.7559, lon: float = 121.0597):
     api_key = os.getenv("OPENWEATHER_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="API key not configured")
+        try:
+            from mock_weather import mock_current, mock_forecast
+            current = mock_current
+            forecast = mock_forecast
+            # Filter to 24-hour forecast (8 items of 3-hour intervals)
+            forecast["list"] = forecast["list"][:8]
+
+            pop = forecast["list"][0].get("pop", 0) * 100
+
+            return {
+                "current": current,
+                "forecast": forecast,
+                "derived": {
+                    "temp": current["main"]["temp"],
+                    "pop": pop,
+                    "wind": current["wind"]["speed"] * 3.6,
+                    "uvi": 8.0, # Mock a high UV scenario for interesting action plan
+                    "humidity": current["main"]["humidity"]
+                }
+            }
+        except ImportError:
+            raise HTTPException(status_code=500, detail="API key not configured and mock data missing")
 
     # Use Current Weather data endpoint
     current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
@@ -118,6 +139,9 @@ async def get_weather(lat: float = 13.7559, lon: float = 121.0597):
 
         current = current_res.json()
         forecast = forecast_res.json()
+
+        # Filter to 24-hour forecast (8 items of 3-hour intervals)
+        forecast["list"] = forecast["list"][:8]
 
         # Pop is not directly available in current, grab it from forecast for today
         pop = forecast["list"][0].get("pop", 0) * 100

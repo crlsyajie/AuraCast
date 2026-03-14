@@ -5,16 +5,16 @@ export function Forecast({ data }: { data: any }) {
 
   const forecastList = data.forecast.list;
 
-  // Filter 1 item per day (e.g. at 12:00:00)
-  const dailyForecasts = forecastList.filter((item: any) => item.dt_txt.includes("12:00:00")).slice(0, 5);
+  // Show all 8 items (which covers 24 hours at 3-hour intervals)
+  const hourlyForecasts = forecastList.slice(0, 8);
 
   return (
     <div className="bg-[#1c1c21] rounded-3xl p-6 flex-1">
-      <h3 className="text-lg font-medium mb-4">5 Day Forecast</h3>
+      <h3 className="text-lg font-medium mb-4">24-Hour Forecast</h3>
       <div className="flex space-x-4 overflow-x-auto pb-2 scrollbar-hide">
-        {dailyForecasts.map((day: any, idx: number) => {
+        {hourlyForecasts.map((day: any, idx: number) => {
           const date = new Date(day.dt * 1000);
-          const dayName = idx === 0 ? "Today" : date.toLocaleDateString('en-US', { weekday: 'short' });
+          const timeString = idx === 0 ? "Now" : date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
           const tempMax = Math.round(day.main.temp_max);
           const description = day.weather[0].main;
 
@@ -36,7 +36,7 @@ export function Forecast({ data }: { data: any }) {
 
           return (
              <div key={idx} className={`flex flex-col items-center justify-between p-4 rounded-2xl min-w-[80px] h-36 ${idx === 0 ? 'bg-[#2c2c31]' : 'bg-transparent border border-[#2c2c31]'}`}>
-              <span className="text-sm text-gray-300">{dayName}</span>
+              <span className="text-sm text-gray-300">{timeString}</span>
               <div className="my-2"><Icon className={`w-8 h-8 ${iconColor}`} /></div>
               <span className="text-sm font-semibold">{tempMax}°C</span>
             </div>
