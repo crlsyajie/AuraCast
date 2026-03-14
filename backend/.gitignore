@@ -1,0 +1,6 @@
+
+*.log
+*.db
+venv/
+.env
+mock_weather.py
