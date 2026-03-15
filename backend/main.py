@@ -7,6 +7,7 @@ import httpx
 from dotenv import load_dotenv
 from database import get_db
 import models
+from mock_weather import get_mock_weather
 
 load_dotenv()
 
@@ -28,6 +29,8 @@ class WeatherData(BaseModel):
     humidity: float
 
 class ActionPlan(BaseModel):
+    daily_action_plan: str
+    smart_recommendations: str
     recommendation: str
     scenario: str
 
@@ -46,21 +49,29 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
+            daily_action_plan="Wear sunscreen, a hat, and sunglasses. Seek shade during peak hours.",
+            smart_recommendations="Drink plenty of water and avoid strenuous outdoor activities.",
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
+            daily_action_plan="Bring a sturdy umbrella and a waterproof jacket. Work from home if possible.",
+            smart_recommendations="Secure loose outdoor items and check local weather alerts.",
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
+            daily_action_plan="Wear a heavy coat, gloves, and a scarf. Keep a warm beverage handy.",
+            smart_recommendations="Ensure heating is working and protect exposed skin.",
             recommendation="Cold temperatures. Dress warmly in layers.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
+            daily_action_plan="Dress comfortably. A light jacket might be needed in the evening.",
+            smart_recommendations="Perfect weather for a walk or outdoor dining.",
             recommendation="Weather is moderate. Have a great day!",
             scenario="Moderate"
         )
@@ -100,39 +111,41 @@ def get_history(db: Session = Depends(get_db)):
 @app.get("/v1/weather")
 async def get_weather(lat: float = 13.7559, lon: float = 121.0597):
     api_key = os.getenv("OPENWEATHER_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="API key not configured")
+    if not api_key or api_key == "":
+        # Fallback to mock data
+        current, forecast = get_mock_weather(lat, lon)
+        pop = forecast["list"][0].get("pop", 0) * 100
+    else:
+        # Use Current Weather data endpoint
+        current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
 
-    # Use Current Weather data endpoint
-    current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-    forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        async with httpx.AsyncClient() as client:
+            current_res = await client.get(current_url)
+            forecast_res = await client.get(forecast_url)
 
-    async with httpx.AsyncClient() as client:
-        current_res = await client.get(current_url)
-        forecast_res = await client.get(forecast_url)
+            if current_res.status_code != 200:
+                raise HTTPException(status_code=current_res.status_code, detail="Failed to fetch current weather")
+            if forecast_res.status_code != 200:
+                raise HTTPException(status_code=forecast_res.status_code, detail="Failed to fetch forecast")
 
-        if current_res.status_code != 200:
-            raise HTTPException(status_code=current_res.status_code, detail="Failed to fetch current weather")
-        if forecast_res.status_code != 200:
-            raise HTTPException(status_code=forecast_res.status_code, detail="Failed to fetch forecast")
-
-        current = current_res.json()
-        forecast = forecast_res.json()
+            current = current_res.json()
+            forecast = forecast_res.json()
 
         # Pop is not directly available in current, grab it from forecast for today
         pop = forecast["list"][0].get("pop", 0) * 100
 
-        # Note: OpenWeather current API does not provide UVI. We will mock UVI or set to a default for analysis
-        # as the free tier does not include UVI easily in the current weather endpoint
+    # Note: OpenWeather current API does not provide UVI. We will mock UVI or set to a default for analysis
+    # as the free tier does not include UVI easily in the current weather endpoint
 
-        return {
-            "current": current,
-            "forecast": forecast,
-            "derived": {
-                "temp": current["main"]["temp"],
-                "pop": pop,
-                "wind": current["wind"]["speed"] * 3.6, # Convert m/s to km/h
-                "uvi": 4.0, # Fallback default
-                "humidity": current["main"]["humidity"]
-            }
+    return {
+        "current": current,
+        "forecast": forecast,
+        "derived": {
+            "temp": current["main"]["temp"],
+            "pop": pop,
+            "wind": current["wind"]["speed"] * 3.6, # Convert m/s to km/h
+            "uvi": 4.0, # Fallback default
+            "humidity": current["main"]["humidity"]
         }
+    }
