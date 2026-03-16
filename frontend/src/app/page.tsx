@@ -14,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchWeather() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/weather?lat=13.7559&lon=121.0597`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/weather?lat=13.7565&lon=121.0583`);
         const data = await res.json();
         setWeatherData(data);
       } catch (e) {

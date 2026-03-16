@@ -66,7 +66,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
           <Icon className={`w-5 h-5 ${iconColor}`} />
         </div>
         <div>
-          <h4 className="font-semibold text-lg mb-1">AuraCast: Intelligent Action Plan</h4>
+          <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
           <p className="text-gray-300 text-sm leading-relaxed">
             {recommendation}
           </p>
