@@ -7,6 +7,7 @@ import httpx
 from dotenv import load_dotenv
 from database import get_db
 import models
+import json
 
 load_dotenv()
 
@@ -98,41 +99,50 @@ def get_history(db: Session = Depends(get_db)):
     return history
 
 @app.get("/v1/weather")
-async def get_weather(lat: float = 13.7559, lon: float = 121.0597):
+async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
     api_key = os.getenv("OPENWEATHER_API_KEY")
+
     if not api_key:
-        raise HTTPException(status_code=500, detail="API key not configured")
+        # Fall back to mock response if API key is not configured
+        mock_file_path = os.path.join(os.path.dirname(__file__), "mock_weather.json")
+        try:
+            with open(mock_file_path, "r") as f:
+                mock_data = json.load(f)
+                current = mock_data["current"]
+                forecast = mock_data["forecast"]
+        except FileNotFoundError:
+            raise HTTPException(status_code=500, detail="Mock weather data file not found")
+    else:
+        # Use Current Weather data endpoint
+        current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
 
-    # Use Current Weather data endpoint
-    current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-    forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        async with httpx.AsyncClient() as client:
+            current_res = await client.get(current_url)
+            forecast_res = await client.get(forecast_url)
 
-    async with httpx.AsyncClient() as client:
-        current_res = await client.get(current_url)
-        forecast_res = await client.get(forecast_url)
+            if current_res.status_code != 200:
+                raise HTTPException(status_code=current_res.status_code, detail="Failed to fetch current weather")
+            if forecast_res.status_code != 200:
+                raise HTTPException(status_code=forecast_res.status_code, detail="Failed to fetch forecast")
 
-        if current_res.status_code != 200:
-            raise HTTPException(status_code=current_res.status_code, detail="Failed to fetch current weather")
-        if forecast_res.status_code != 200:
-            raise HTTPException(status_code=forecast_res.status_code, detail="Failed to fetch forecast")
+            current = current_res.json()
+            forecast = forecast_res.json()
 
-        current = current_res.json()
-        forecast = forecast_res.json()
+    # Pop is not directly available in current, grab it from forecast for today
+    pop = forecast["list"][0].get("pop", 0) * 100
 
-        # Pop is not directly available in current, grab it from forecast for today
-        pop = forecast["list"][0].get("pop", 0) * 100
+    # Note: OpenWeather current API does not provide UVI. We will mock UVI or set to a default for analysis
+    # as the free tier does not include UVI easily in the current weather endpoint
 
-        # Note: OpenWeather current API does not provide UVI. We will mock UVI or set to a default for analysis
-        # as the free tier does not include UVI easily in the current weather endpoint
-
-        return {
-            "current": current,
-            "forecast": forecast,
-            "derived": {
-                "temp": current["main"]["temp"],
-                "pop": pop,
-                "wind": current["wind"]["speed"] * 3.6, # Convert m/s to km/h
-                "uvi": 4.0, # Fallback default
-                "humidity": current["main"]["humidity"]
-            }
+    return {
+        "current": current,
+        "forecast": forecast,
+        "derived": {
+            "temp": current["main"]["temp"],
+            "pop": pop,
+            "wind": current["wind"]["speed"] * 3.6, # Convert m/s to km/h
+            "uvi": 4.0, # Fallback default
+            "humidity": current["main"]["humidity"]
         }
+    }
