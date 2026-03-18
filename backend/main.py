@@ -31,6 +31,8 @@ class WeatherData(BaseModel):
 class ActionPlan(BaseModel):
     recommendation: str
     scenario: str
+    what_to_bring: str
+    how_to_plan: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
 def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
@@ -48,22 +50,30 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
+            scenario="Sunny/High UV",
+            what_to_bring="Sunscreen, sunglasses, and a wide-brimmed hat.",
+            how_to_plan="Schedule outdoor activities for early morning or late afternoon to avoid peak sun hours."
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
+            scenario="Rain/Windy",
+            what_to_bring="Sturdy umbrella, raincoat, and waterproof footwear.",
+            how_to_plan="Stay indoors if possible. Secure loose outdoor items and avoid unnecessary travel."
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
             recommendation="Cold temperatures. Dress warmly in layers.",
-            scenario="Cold"
+            scenario="Cold",
+            what_to_bring="Heavy coat, gloves, scarf, and thermal layers.",
+            how_to_plan="Plan indoor activities. If going outside, dress in layers to retain body heat."
         )
     else:
         action_plan = ActionPlan(
             recommendation="Weather is moderate. Have a great day!",
-            scenario="Moderate"
+            scenario="Moderate",
+            what_to_bring="Light jacket or comfortable layers just in case.",
+            how_to_plan="Enjoy the outdoors! Great weather for a walk, running errands, or casual outdoor activities."
         )
 
     # Save recommendation log
