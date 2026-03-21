@@ -99,7 +99,7 @@ def get_history(db: Session = Depends(get_db)):
     return history
 
 @app.get("/v1/weather")
-async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
+async def get_weather(lat: float = 13.7558, lon: float = 121.0584):
     api_key = os.getenv("OPENWEATHER_API_KEY")
 
     if not api_key:
