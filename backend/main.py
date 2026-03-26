@@ -29,6 +29,7 @@ class WeatherData(BaseModel):
     humidity: float
 
 class ActionPlan(BaseModel):
+    action_plan: str
     recommendation: str
     scenario: str
 
@@ -47,21 +48,25 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
+            action_plan="Schedule outdoor activities for early morning or late afternoon.",
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
+            action_plan="Reschedule outdoor plans or stay indoors.",
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
+            action_plan="Keep activities indoors or keep moving if outside.",
             recommendation="Cold temperatures. Dress warmly in layers.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
+            action_plan="Great day for any activities, enjoy the outdoors!",
             recommendation="Weather is moderate. Have a great day!",
             scenario="Moderate"
         )
@@ -69,6 +74,7 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     # Save recommendation log
     rec_log = models.RecommendationLog(
         weather_log_id=weather_log.id,
+        action_plan=action_plan.action_plan,
         recommendation=action_plan.recommendation,
         scenario=action_plan.scenario,
         is_followed=False
@@ -86,6 +92,7 @@ def get_history(db: Session = Depends(get_db)):
         weather = log.weather_log
         history.append({
             "id": log.id,
+            "action_plan": log.action_plan,
             "recommendation": log.recommendation,
             "scenario": log.scenario,
             "is_followed": log.is_followed,
