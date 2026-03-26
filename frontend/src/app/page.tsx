@@ -56,21 +56,21 @@ export default function Home() {
         {/* Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 h-[calc(100vh-140px)]">
           {/* Left Column (Location & Action Plan) */}
-          <div className="lg:col-span-5 flex flex-col gap-6 h-full">
-            <div className="flex-grow flex flex-col h-2/3">
+          <div className="lg:col-span-5 flex flex-col gap-6 h-full min-h-0">
+            <div className="flex-grow flex flex-col h-1/2">
               <Location data={weatherData} />
             </div>
-            <div className="flex-shrink-0 h-1/3">
+            <div className="flex-shrink-0 h-1/2 min-h-0">
               <ActionPlan derived={weatherData?.derived} />
             </div>
           </div>
 
           {/* Right Column (Highlights & Forecast) */}
-          <div className="lg:col-span-7 flex flex-col gap-6 h-full">
-             <div className="flex-grow flex flex-col h-2/3">
+          <div className="lg:col-span-7 flex flex-col gap-6 h-full min-h-0">
+             <div className="flex-grow flex flex-col h-1/2">
                <Highlight data={weatherData} />
              </div>
-             <div className="flex-shrink-0 h-1/3">
+             <div className="flex-shrink-0 h-1/2 min-h-0">
                <Forecast data={weatherData} />
              </div>
           </div>
