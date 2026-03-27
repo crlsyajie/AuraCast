@@ -57,20 +57,20 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 h-[calc(100vh-140px)]">
           {/* Left Column (Location & Action Plan) */}
           <div className="lg:col-span-5 flex flex-col gap-6 h-full">
-            <div className="flex-grow flex flex-col h-2/3">
+            <div className="flex-grow flex flex-col min-h-[50%]">
               <Location data={weatherData} />
             </div>
-            <div className="flex-shrink-0 h-1/3">
+            <div className="flex-grow flex flex-col min-h-[40%]">
               <ActionPlan derived={weatherData?.derived} />
             </div>
           </div>
 
           {/* Right Column (Highlights & Forecast) */}
           <div className="lg:col-span-7 flex flex-col gap-6 h-full">
-             <div className="flex-grow flex flex-col h-2/3">
+             <div className="flex-grow flex flex-col min-h-[60%]">
                <Highlight data={weatherData} />
              </div>
-             <div className="flex-shrink-0 h-1/3">
+             <div className="flex-shrink-0 min-h-[30%]">
                <Forecast data={weatherData} />
              </div>
           </div>

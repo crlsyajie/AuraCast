@@ -30,6 +30,7 @@ class WeatherData(BaseModel):
 
 class ActionPlan(BaseModel):
     recommendation: str
+    smart_recommendations: list[str]
     scenario: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
@@ -48,21 +49,25 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            smart_recommendations=["Wear sunscreen", "Bring sunglasses", "Limit outdoor exposure"],
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            smart_recommendations=["Bring an umbrella", "Wear a raincoat", "Stay indoors if possible"],
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
             recommendation="Cold temperatures. Dress warmly in layers.",
+            smart_recommendations=["Wear a heavy coat", "Bring gloves", "Dress in layers"],
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
             recommendation="Weather is moderate. Have a great day!",
+            smart_recommendations=["Wear light clothing", "Stay hydrated", "Enjoy the outdoors"],
             scenario="Moderate"
         )
 
@@ -70,6 +75,7 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     rec_log = models.RecommendationLog(
         weather_log_id=weather_log.id,
         recommendation=action_plan.recommendation,
+        smart_recommendations=json.dumps(action_plan.smart_recommendations),
         scenario=action_plan.scenario,
         is_followed=False
     )
