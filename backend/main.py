@@ -47,22 +47,32 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            recommendation="High UV detected. Wear sunscreen, sunglasses, and a hat. Limit outdoor exposure.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            recommendation="Heavy rain and strong winds expected. Bring an umbrella, wear a raincoat, and stay indoors if possible.",
             scenario="Rain/Windy"
+        )
+    elif data.temp > 30:
+        action_plan = ActionPlan(
+            recommendation="Hot weather. Wear light clothing, stay hydrated, and bring a water bottle.",
+            scenario="Hot"
+        )
+    elif data.pop >= 30:
+        action_plan = ActionPlan(
+            recommendation="Rain is possible. Bring an umbrella or raincoat just in case.",
+            scenario="Rain Possible"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            recommendation="Cold temperatures. Dress warmly in layers, bring a jacket and gloves.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            recommendation="Weather is moderate. Wear comfortable clothes. Have a great day!",
             scenario="Moderate"
         )
 
