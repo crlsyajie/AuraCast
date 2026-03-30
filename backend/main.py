@@ -27,6 +27,9 @@ class WeatherData(BaseModel):
     uvi: float
     wind: float
     humidity: float
+    forecast_pop_24h: float
+    forecast_temp_min_24h: float
+    forecast_temp_max_24h: float
 
 class ActionPlan(BaseModel):
     recommendation: str
@@ -45,24 +48,30 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     db.refresh(weather_log)
 
     action_plan = None
-    if data.uvi >= 8 and data.pop < 20:
+    if data.forecast_pop_24h >= 50 or data.pop >= 50:
+        if data.wind >= 20:
+            action_plan = ActionPlan(
+                recommendation="Heavy rain and strong winds expected. Stay indoors if possible and secure loose items.",
+                scenario="Rain/Windy"
+            )
+        else:
+            action_plan = ActionPlan(
+                recommendation="High chance of rain in the next 24 hours. Don't forget to bring an umbrella and a raincoat.",
+                scenario="Rain"
+            )
+    elif data.forecast_temp_max_24h >= 32 or data.uvi >= 8:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            recommendation="High temperatures or UV detected. Wear sunscreen, bring sunglasses, and stay hydrated.",
             scenario="Sunny/High UV"
         )
-    elif data.pop >= 50 and data.wind >= 20:
+    elif data.forecast_temp_min_24h < 15 or data.temp < 15:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
-        )
-    elif data.temp < 10:
-        action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            recommendation="Cold temperatures expected. Dress warmly in layers and bring a jacket.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            recommendation="Weather is moderate over the next 24 hours. Perfect day for outdoor activities. Bring light clothes and a water bottle.",
             scenario="Moderate"
         )
 
@@ -99,7 +108,7 @@ def get_history(db: Session = Depends(get_db)):
     return history
 
 @app.get("/v1/weather")
-async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
+async def get_weather(lat: float = 13.75, lon: float = 121.05):
     api_key = os.getenv("OPENWEATHER_API_KEY")
 
     if not api_key:
@@ -132,6 +141,12 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
     # Pop is not directly available in current, grab it from forecast for today
     pop = forecast["list"][0].get("pop", 0) * 100
 
+    # Calculate 24-hour forecast derived fields (next 8 3-hour chunks)
+    forecast_24h = forecast["list"][:8]
+    forecast_pop_24h = max([item.get("pop", 0) for item in forecast_24h]) * 100
+    forecast_temp_min_24h = min([item["main"]["temp_min"] for item in forecast_24h])
+    forecast_temp_max_24h = max([item["main"]["temp_max"] for item in forecast_24h])
+
     # Note: OpenWeather current API does not provide UVI. We will mock UVI or set to a default for analysis
     # as the free tier does not include UVI easily in the current weather endpoint
 
@@ -143,6 +158,9 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
             "pop": pop,
             "wind": current["wind"]["speed"] * 3.6, # Convert m/s to km/h
             "uvi": 4.0, # Fallback default
-            "humidity": current["main"]["humidity"]
+            "humidity": current["main"]["humidity"],
+            "forecast_pop_24h": forecast_pop_24h,
+            "forecast_temp_min_24h": forecast_temp_min_24h,
+            "forecast_temp_max_24h": forecast_temp_max_24h
         }
     }

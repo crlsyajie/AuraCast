@@ -23,6 +23,9 @@ export function ActionPlan({ derived }: { derived?: any }) {
             uvi: derived.uvi,
             wind: derived.wind,
             humidity: derived.humidity,
+            forecast_pop_24h: derived.forecast_pop_24h || 0,
+            forecast_temp_min_24h: derived.forecast_temp_min_24h || derived.temp,
+            forecast_temp_max_24h: derived.forecast_temp_max_24h || derived.temp,
           }),
         });
         const data = await res.json();
@@ -49,6 +52,14 @@ export function ActionPlan({ derived }: { derived?: any }) {
     Icon = ShieldCheck;
     iconColor = "text-green-400";
     bgClass = "bg-green-500/20";
+  } else if (scenario === "Rain") {
+    Icon = Info;
+    iconColor = "text-blue-400";
+    bgClass = "bg-blue-500/20";
+  } else if (scenario === "Cold") {
+    Icon = Info;
+    iconColor = "text-blue-200";
+    bgClass = "bg-blue-300/20";
   }
 
   return (
