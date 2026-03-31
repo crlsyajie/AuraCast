@@ -129,8 +129,13 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
             current = current_res.json()
             forecast = forecast_res.json()
 
-    # Pop is not directly available in current, grab it from forecast for today
-    pop = forecast["list"][0].get("pop", 0) * 100
+    # Process the 24-hour forecast (next 8 3-hour periods)
+    forecast_24h = forecast["list"][:8]
+
+    # Calculate derived metrics for the next 24 hours
+    min_temp_24h = min([item["main"]["temp"] for item in forecast_24h])
+    max_pop_24h = max([item.get("pop", 0) for item in forecast_24h]) * 100
+    max_wind_24h = max([item["wind"]["speed"] for item in forecast_24h]) * 3.6
 
     # Note: OpenWeather current API does not provide UVI. We will mock UVI or set to a default for analysis
     # as the free tier does not include UVI easily in the current weather endpoint
@@ -139,9 +144,9 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
         "current": current,
         "forecast": forecast,
         "derived": {
-            "temp": current["main"]["temp"],
-            "pop": pop,
-            "wind": current["wind"]["speed"] * 3.6, # Convert m/s to km/h
+            "temp": min(current["main"]["temp"], min_temp_24h), # Use min temp to trigger cold warnings
+            "pop": max_pop_24h,
+            "wind": max(current["wind"]["speed"] * 3.6, max_wind_24h),
             "uvi": 4.0, # Fallback default
             "humidity": current["main"]["humidity"]
         }
