@@ -45,24 +45,39 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     db.refresh(weather_log)
 
     action_plan = None
-    if data.uvi >= 8 and data.pop < 20:
+    if data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            recommendation="Heavy rain and strong winds expected. Bring a sturdy umbrella and a raincoat. Stay indoors if possible.",
+            scenario="Rain/Windy"
+        )
+    elif data.pop >= 50:
+        action_plan = ActionPlan(
+            recommendation="Rain expected. Don't forget to bring an umbrella or a raincoat.",
+            scenario="Rain"
+        )
+    elif data.temp >= 30 and data.humidity >= 70:
+        action_plan = ActionPlan(
+            recommendation="Hot and humid conditions. Wear light clothing, bring a water bottle to stay hydrated, and carry a portable fan if possible.",
+            scenario="Hot/Humid"
+        )
+    elif data.uvi >= 8:
+        action_plan = ActionPlan(
+            recommendation="High UV detected. Wear sunscreen, bring sunglasses, and wear a hat for protection.",
             scenario="Sunny/High UV"
         )
-    elif data.pop >= 50 and data.wind >= 20:
+    elif data.temp >= 30:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
+            recommendation="Hot temperatures. Wear light, breathable clothing and bring a water bottle.",
+            scenario="Hot"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            recommendation="Cold temperatures. Dress warmly in layers, bring a jacket, and consider gloves.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            recommendation="Weather is moderate. Bring your usual daily essentials and have a great day!",
             scenario="Moderate"
         )
 
