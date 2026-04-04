@@ -6,6 +6,8 @@ import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [whatToBring, setWhatToBring] = useState<string>("");
+  const [howToPlan, setHowToPlan] = useState<string>("");
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +30,8 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        setWhatToBring(data.what_to_bring);
+        setHowToPlan(data.how_to_plan);
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -61,16 +65,32 @@ export function ActionPlan({ derived }: { derived?: any }) {
         </div>
       </div>
 
-      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full">
-        <div className={`${bgClass} p-2 rounded-full mt-1`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+      <div className="bg-[#2c2c31] rounded-2xl p-4 flex flex-col space-y-4 h-full overflow-y-auto">
+        <div className="flex items-start space-x-4">
+          <div className={`${bgClass} p-2 rounded-full mt-1`}>
+            <Icon className={`w-5 h-5 ${iconColor}`} />
+          </div>
+          <div>
+            <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {recommendation}
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {recommendation}
-          </p>
-        </div>
+
+        {whatToBring && (
+          <div className="border-t border-gray-700 pt-3">
+            <h5 className="text-sm font-semibold text-gray-200 mb-1">What to Bring</h5>
+            <p className="text-gray-400 text-sm">{whatToBring}</p>
+          </div>
+        )}
+
+        {howToPlan && (
+          <div className="border-t border-gray-700 pt-3">
+            <h5 className="text-sm font-semibold text-gray-200 mb-1">How to Plan Your Day</h5>
+            <p className="text-gray-400 text-sm">{howToPlan}</p>
+          </div>
+        )}
       </div>
     </div>
   );
