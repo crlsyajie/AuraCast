@@ -31,6 +31,8 @@ class WeatherData(BaseModel):
 class ActionPlan(BaseModel):
     recommendation: str
     scenario: str
+    what_to_bring: str
+    how_to_plan: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
 def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
@@ -48,22 +50,30 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
+            scenario="Sunny/High UV",
+            what_to_bring="Sunscreen, sunglasses, wide-brimmed hat, and plenty of water.",
+            how_to_plan="Plan outdoor activities for early morning or late afternoon to avoid peak UV hours."
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
+            scenario="Rain/Windy",
+            what_to_bring="Sturdy umbrella, raincoat, and waterproof footwear.",
+            how_to_plan="Reschedule outdoor events and plan indoor activities. Allow extra time for commuting."
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
             recommendation="Cold temperatures. Dress warmly in layers.",
-            scenario="Cold"
+            scenario="Cold",
+            what_to_bring="Heavy coat, gloves, scarf, and thermal layers.",
+            how_to_plan="Minimize prolonged exposure outdoors and plan warming breaks if outside."
         )
     else:
         action_plan = ActionPlan(
             recommendation="Weather is moderate. Have a great day!",
-            scenario="Moderate"
+            scenario="Moderate",
+            what_to_bring="Light layers and a comfortable bag.",
+            how_to_plan="Enjoy outdoor activities normally, conditions are great for a full day out."
         )
 
     # Save recommendation log
