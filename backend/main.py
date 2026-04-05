@@ -21,12 +21,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from typing import Optional, Dict, Any
+
 class WeatherData(BaseModel):
     temp: float
     pop: float
     uvi: float
     wind: float
     humidity: float
+    current: Optional[Dict[str, Any]] = None
+    forecast: Optional[Dict[str, Any]] = None
 
 class ActionPlan(BaseModel):
     recommendation: str
@@ -44,16 +48,32 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(weather_log)
 
+    # Analyze 24-hour forecast if available (next 8 3-hour blocks)
+    upcoming_rain = data.pop >= 50
+    max_forecast_temp = data.temp
+    if data.forecast and "list" in data.forecast:
+        next_24h = data.forecast["list"][:8]
+        for f in next_24h:
+            if f.get("pop", 0) >= 0.5:
+                upcoming_rain = True
+            if f["main"]["temp"] > max_forecast_temp:
+                max_forecast_temp = f["main"]["temp"]
+
     action_plan = None
-    if data.uvi >= 8 and data.pop < 20:
+    if upcoming_rain and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
-        )
-    elif data.pop >= 50 and data.wind >= 20:
-        action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            recommendation="Heavy rain and strong winds expected within 24h. Bring an umbrella and stay indoors if possible.",
             scenario="Rain/Windy"
+        )
+    elif upcoming_rain:
+        action_plan = ActionPlan(
+            recommendation="Rain expected in the next 24 hours. Don't forget to pack an umbrella!",
+            scenario="Rain/Windy"
+        )
+    elif data.uvi >= 8 or max_forecast_temp >= 30:
+        action_plan = ActionPlan(
+            recommendation="High UV or heat expected. Wear sunscreen, bring a hat, and stay hydrated.",
+            scenario="Sunny/High UV"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
@@ -62,7 +82,7 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            recommendation="Weather is moderate for the next 24 hours. Have a great day planning ahead!",
             scenario="Moderate"
         )
 

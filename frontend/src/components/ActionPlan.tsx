@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 
-export function ActionPlan({ derived }: { derived?: any }) {
+export function ActionPlan({ derived, current, forecast }: { derived?: any, current?: any, forecast?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
 
@@ -23,6 +23,8 @@ export function ActionPlan({ derived }: { derived?: any }) {
             uvi: derived.uvi,
             wind: derived.wind,
             humidity: derived.humidity,
+            current: current,
+            forecast: forecast,
           }),
         });
         const data = await res.json();

@@ -61,7 +61,11 @@ export default function Home() {
               <Location data={weatherData} />
             </div>
             <div className="flex-shrink-0 h-1/3">
-              <ActionPlan derived={weatherData?.derived} />
+              <ActionPlan
+                derived={weatherData?.derived}
+                current={weatherData?.current}
+                forecast={weatherData?.forecast}
+              />
             </div>
           </div>
 
