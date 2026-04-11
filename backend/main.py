@@ -30,6 +30,7 @@ class WeatherData(BaseModel):
 
 class ActionPlan(BaseModel):
     recommendation: str
+    action_plan: str
     scenario: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
@@ -47,22 +48,26 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            recommendation="High UV detected. Wear sunscreen (SPF 50+), sunglasses, and a wide-brimmed hat.",
+            action_plan="Limit outdoor exposure between 10 AM and 4 PM. Stay hydrated.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            recommendation="Bring a sturdy umbrella, wear a raincoat and waterproof shoes.",
+            action_plan="Heavy rain and strong winds expected. Stay indoors if possible. Secure loose objects outdoors.",
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            recommendation="Bring a heavy coat, gloves, and a scarf.",
+            action_plan="Cold temperatures. Dress warmly in layers. Limit time in freezing temperatures.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            recommendation="Bring a light jacket and sunglasses just in case.",
+            action_plan="Weather is moderate. Enjoy your outdoor activities as planned.",
             scenario="Moderate"
         )
 
