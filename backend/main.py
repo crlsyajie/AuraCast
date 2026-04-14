@@ -28,8 +28,11 @@ class WeatherData(BaseModel):
     wind: float
     humidity: float
 
+from typing import List
+
 class ActionPlan(BaseModel):
-    recommendation: str
+    daily_action_plan: str
+    smart_recommendations: List[str]
     scenario: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
@@ -47,29 +50,34 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            daily_action_plan="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            smart_recommendations=["Wear SPF 50+ sunscreen", "Bring a wide-brimmed hat", "Stay hydrated"],
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            daily_action_plan="Heavy rain and strong winds expected. Stay indoors if possible.",
+            smart_recommendations=["Bring an umbrella", "Wear waterproof shoes", "Secure outdoor items"],
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            daily_action_plan="Cold temperatures. Dress warmly in layers.",
+            smart_recommendations=["Wear a heavy coat", "Bring a beanie and gloves", "Drink warm liquids"],
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            daily_action_plan="Weather is moderate. Have a great day!",
+            smart_recommendations=["Wear comfortable clothing", "Enjoy the outdoors", "Light jacket recommended"],
             scenario="Moderate"
         )
 
     # Save recommendation log
     rec_log = models.RecommendationLog(
         weather_log_id=weather_log.id,
-        recommendation=action_plan.recommendation,
+        daily_action_plan=action_plan.daily_action_plan,
+        smart_recommendations=json.dumps(action_plan.smart_recommendations),
         scenario=action_plan.scenario,
         is_followed=False
     )
@@ -86,7 +94,8 @@ def get_history(db: Session = Depends(get_db)):
         weather = log.weather_log
         history.append({
             "id": log.id,
-            "recommendation": log.recommendation,
+            "daily_action_plan": log.daily_action_plan,
+            "smart_recommendations": json.loads(log.smart_recommendations),
             "scenario": log.scenario,
             "is_followed": log.is_followed,
             "timestamp": log.timestamp,
