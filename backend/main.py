@@ -21,15 +21,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from typing import List, Optional
+
+class HourlyForecast(BaseModel):
+    temp: float
+    pop: float
+    wind: float
+    humidity: float
+
 class WeatherData(BaseModel):
     temp: float
     pop: float
     uvi: float
     wind: float
     humidity: float
+    forecast_24h: Optional[List[HourlyForecast]] = None
 
 class ActionPlan(BaseModel):
-    recommendation: str
+    action_plan: str
+    smart_recommendations: List[str]
     scenario: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
@@ -44,32 +54,53 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(weather_log)
 
-    action_plan = None
+    action_plan_text = ""
+    scenario = ""
+    smart_recommendations = []
+
     if data.uvi >= 8 and data.pop < 20:
-        action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
-        )
+        action_plan_text = "High UV detected. Wear sunscreen and limit outdoor exposure."
+        scenario = "Sunny/High UV"
     elif data.pop >= 50 and data.wind >= 20:
-        action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
-        )
+        action_plan_text = "Heavy rain and strong winds expected. Stay indoors if possible."
+        scenario = "Rain/Windy"
     elif data.temp < 10:
-        action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
-            scenario="Cold"
-        )
+        action_plan_text = "Cold temperatures. Dress warmly in layers."
+        scenario = "Cold"
     else:
-        action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
-            scenario="Moderate"
-        )
+        action_plan_text = "Weather is moderate. Have a great day!"
+        scenario = "Moderate"
+
+    if data.forecast_24h:
+        will_rain = any(f.pop >= 50 for f in data.forecast_24h)
+        high_wind = any(f.wind >= 20 for f in data.forecast_24h)
+        cold = any(f.temp < 20 for f in data.forecast_24h)
+        hot = any(f.temp > 30 for f in data.forecast_24h)
+
+        if will_rain:
+            smart_recommendations.append("Bring an umbrella")
+        if high_wind:
+            smart_recommendations.append("Wear a windbreaker")
+        if cold:
+            smart_recommendations.append("Bring a jacket")
+        if hot and data.uvi >= 6:
+            smart_recommendations.append("Bring sunglasses")
+
+    # Default fallback if empty
+    if not smart_recommendations:
+        smart_recommendations.append("Enjoy your day out!")
+
+    action_plan = ActionPlan(
+        action_plan=action_plan_text,
+        smart_recommendations=smart_recommendations,
+        scenario=scenario
+    )
 
     # Save recommendation log
     rec_log = models.RecommendationLog(
         weather_log_id=weather_log.id,
-        recommendation=action_plan.recommendation,
+        action_plan=action_plan.action_plan,
+        smart_recommendations=json.dumps(action_plan.smart_recommendations),
         scenario=action_plan.scenario,
         is_followed=False
     )
@@ -84,9 +115,17 @@ def get_history(db: Session = Depends(get_db)):
     history = []
     for log in logs:
         weather = log.weather_log
+        smart_recs = []
+        if log.smart_recommendations:
+            try:
+                smart_recs = json.loads(log.smart_recommendations)
+            except json.JSONDecodeError:
+                pass
+
         history.append({
             "id": log.id,
-            "recommendation": log.recommendation,
+            "action_plan": log.action_plan,
+            "smart_recommendations": smart_recs,
             "scenario": log.scenario,
             "is_followed": log.is_followed,
             "timestamp": log.timestamp,
