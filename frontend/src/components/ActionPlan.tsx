@@ -1,15 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Info, AlertTriangle, ShieldCheck, Zap } from "lucide-react";
 
-export function ActionPlan({ derived }: { derived?: any }) {
-  const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
+export function ActionPlan({ derived, forecast }: { derived?: any, forecast?: any }) {
+  const [actionPlan, setActionPlan] = useState<string>("Waiting for weather data...");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
   const [scenario, setScenario] = useState<string>("");
 
   useEffect(() => {
     async function fetchActionPlan() {
-      if (!derived) return;
+      if (!derived || !forecast || !forecast.list) return;
+
+      const forecast24h = forecast.list.slice(0, 8).map((item: any) => ({
+        temp: item.main.temp,
+        pop: (item.pop || 0) * 100,
+        wind: item.wind.speed * 3.6, // convert m/s to km/h
+        humidity: item.main.humidity,
+      }));
 
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/analyze`, {
@@ -23,19 +31,21 @@ export function ActionPlan({ derived }: { derived?: any }) {
             uvi: derived.uvi,
             wind: derived.wind,
             humidity: derived.humidity,
+            forecast_24h: forecast24h,
           }),
         });
         const data = await res.json();
-        setRecommendation(data.recommendation);
+        setActionPlan(data.action_plan);
+        setSmartRecommendations(data.smart_recommendations || []);
         setScenario(data.scenario);
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
-        setRecommendation("Unable to load recommendation at this time.");
+        setActionPlan("Unable to load recommendation at this time.");
       }
     }
 
     fetchActionPlan();
-  }, [derived]);
+  }, [derived, forecast]);
 
   let Icon = Info;
   let iconColor = "text-blue-400";
@@ -52,7 +62,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
   }
 
   return (
-    <div className="bg-[#1c1c21] rounded-3xl p-6 flex flex-col justify-between h-full">
+    <div className="bg-[#1c1c21] rounded-3xl p-6 flex flex-col h-full overflow-y-auto">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Daily Smart Recommendations</h3>
         <div className="flex items-center space-x-1 text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">
@@ -61,16 +71,29 @@ export function ActionPlan({ derived }: { derived?: any }) {
         </div>
       </div>
 
-      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full">
-        <div className={`${bgClass} p-2 rounded-full mt-1`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+      <div className="flex flex-col gap-3">
+        {/* Main Action Plan Card */}
+        <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4">
+          <div className={`${bgClass} p-2 rounded-full mt-1`}>
+            <Icon className={`w-5 h-5 ${iconColor}`} />
+          </div>
+          <div>
+            <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {actionPlan}
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {recommendation}
-          </p>
-        </div>
+
+        {/* Smart Recommendations List */}
+        {smartRecommendations.map((rec, index) => (
+          <div key={index} className="bg-[#2c2c31] rounded-2xl p-3 flex items-center space-x-3">
+             <div className="bg-purple-500/20 p-2 rounded-full">
+               <Zap className="w-4 h-4 text-purple-400" />
+             </div>
+             <p className="text-gray-200 text-sm font-medium">{rec}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
