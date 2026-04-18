@@ -29,6 +29,7 @@ class WeatherData(BaseModel):
     humidity: float
 
 class ActionPlan(BaseModel):
+    action_plan: str
     recommendation: str
     scenario: str
 
@@ -47,28 +48,39 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            action_plan="Schedule outdoor activities before 10 AM or after 4 PM to avoid peak UV radiation.",
+            recommendation="Bring broad-spectrum sunscreen (SPF 30+), UV-blocking sunglasses, and a wide-brimmed hat.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            action_plan="Reschedule outdoor events and plan indoor activities. Allow extra time for commuting.",
+            recommendation="Bring a sturdy windproof umbrella, a waterproof jacket, and rain boots.",
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            action_plan="Keep outdoor time brief and keep moving to stay warm. Ensure your heating system is functioning.",
+            recommendation="Bring a heavy winter coat, thermal layers, gloves, and a warm beanie.",
             scenario="Cold"
+        )
+    elif data.temp >= 25 and data.humidity >= 70:
+        action_plan = ActionPlan(
+            action_plan="Pace yourself if exercising outdoors due to high humidity. Plan for air-conditioned breaks.",
+            recommendation="Bring a large water bottle, light breathable clothing, and a cooling towel.",
+            scenario="Warm/Humid"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            action_plan="Ideal conditions for a mix of indoor and outdoor activities. Enjoy a walk or outdoor dining.",
+            recommendation="Bring a light jacket for the evening, a water bottle to stay hydrated, and comfortable walking shoes.",
             scenario="Moderate"
         )
 
     # Save recommendation log
     rec_log = models.RecommendationLog(
         weather_log_id=weather_log.id,
+        action_plan=action_plan.action_plan,
         recommendation=action_plan.recommendation,
         scenario=action_plan.scenario,
         is_followed=False
