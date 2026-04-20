@@ -28,9 +28,13 @@ class WeatherData(BaseModel):
     wind: float
     humidity: float
 
+from typing import List
+
 class ActionPlan(BaseModel):
     recommendation: str
     scenario: str
+    what_to_bring: List[str]
+    how_to_plan: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
 def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
@@ -48,22 +52,30 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
+            scenario="Sunny/High UV",
+            what_to_bring=["Sunscreen", "Sunglasses", "Hat"],
+            how_to_plan="Schedule outdoor activities for early morning or late afternoon to avoid peak UV hours."
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
+            scenario="Rain/Windy",
+            what_to_bring=["Umbrella", "Raincoat", "Waterproof boots"],
+            how_to_plan="Reschedule outdoor plans. Commute with caution and expect delays."
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
             recommendation="Cold temperatures. Dress warmly in layers.",
-            scenario="Cold"
+            scenario="Cold",
+            what_to_bring=["Heavy coat", "Gloves", "Scarf", "Thermals"],
+            how_to_plan="Keep warm and avoid prolonged exposure to the cold. Drink warm beverages."
         )
     else:
         action_plan = ActionPlan(
             recommendation="Weather is moderate. Have a great day!",
-            scenario="Moderate"
+            scenario="Moderate",
+            what_to_bring=["Light jacket", "Water bottle"],
+            how_to_plan="Perfect day for outdoor activities or a casual stroll. No severe weather expected."
         )
 
     # Save recommendation log
@@ -99,7 +111,7 @@ def get_history(db: Session = Depends(get_db)):
     return history
 
 @app.get("/v1/weather")
-async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
+async def get_weather(lat: float = 13.7565, lon: float = 121.0583, city: str = None):
     api_key = os.getenv("OPENWEATHER_API_KEY")
 
     if not api_key:
@@ -114,8 +126,12 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
             raise HTTPException(status_code=500, detail="Mock weather data file not found")
     else:
         # Use Current Weather data endpoint
-        current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        if city:
+            current_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&appid={api_key}"
+            forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?q={city}&units=metric&appid={api_key}"
+        else:
+            current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+            forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
 
         async with httpx.AsyncClient() as client:
             current_res = await client.get(current_url)
