@@ -21,16 +21,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from typing import List, Optional
+
 class WeatherData(BaseModel):
     temp: float
     pop: float
     uvi: float
     wind: float
     humidity: float
+    forecast: Optional[List[dict]] = None
 
 class ActionPlan(BaseModel):
     recommendation: str
     scenario: str
+    smart_recommendations: Optional[List[str]] = None
 
 @app.post("/v1/analyze", response_model=ActionPlan)
 def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
@@ -65,6 +69,25 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
             recommendation="Weather is moderate. Have a great day!",
             scenario="Moderate"
         )
+
+    # Generate Smart Recommendations based on forecast
+    smart_recs = []
+    if data.forecast:
+        for f_item in data.forecast[:8]: # 24-hour forecast (8 * 3 hours)
+            if f_item.get("pop", 0) > 0.5:
+                smart_recs.append("Pack an umbrella, rain expected later.")
+                break
+
+        temps = [f["main"]["temp"] for f in data.forecast[:8] if "main" in f]
+        if temps and max(temps) > 30:
+            smart_recs.append("Stay hydrated, it will be hot.")
+        elif temps and min(temps) < 15:
+            smart_recs.append("Bring a jacket, it might get chilly.")
+
+    if not smart_recs:
+        smart_recs.append("Conditions look stable for the next 24 hours.")
+
+    action_plan.smart_recommendations = smart_recs
 
     # Save recommendation log
     rec_log = models.RecommendationLog(
