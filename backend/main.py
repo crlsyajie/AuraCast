@@ -30,6 +30,7 @@ class WeatherData(BaseModel):
 
 class ActionPlan(BaseModel):
     recommendation: str
+    action_plan: str
     scenario: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
@@ -47,22 +48,26 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            recommendation="High UV detected. Wear sunscreen and sunglasses.",
+            action_plan="Limit outdoor exposure between 10 AM and 4 PM. Seek shade when outside.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            recommendation="Heavy rain and strong winds expected. Bring a sturdy umbrella and raincoat.",
+            action_plan="Stay indoors if possible. Secure loose outdoor items and avoid unnecessary travel.",
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            recommendation="Cold temperatures. Bring a heavy coat, gloves, and a hat.",
+            action_plan="Dress warmly in layers. Minimize time spent outdoors to avoid frostbite.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            recommendation="Weather is moderate. A light jacket might be useful.",
+            action_plan="Have a great day! Enjoy outdoor activities safely.",
             scenario="Moderate"
         )
 
@@ -70,6 +75,7 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     rec_log = models.RecommendationLog(
         weather_log_id=weather_log.id,
         recommendation=action_plan.recommendation,
+        action_plan=action_plan.action_plan,
         scenario=action_plan.scenario,
         is_followed=False
     )
