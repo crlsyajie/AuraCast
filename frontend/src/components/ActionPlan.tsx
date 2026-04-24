@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 
+import { Lightbulb } from "lucide-react";
+
 export function ActionPlan({ derived }: { derived?: any }) {
-  const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
+  const [actionPlan, setActionPlan] = useState<string>("Waiting for weather data...");
+  const [smartRecommendation, setSmartRecommendation] = useState<string>("");
   const [scenario, setScenario] = useState<string>("");
 
   useEffect(() => {
@@ -26,11 +29,12 @@ export function ActionPlan({ derived }: { derived?: any }) {
           }),
         });
         const data = await res.json();
-        setRecommendation(data.recommendation);
+        setActionPlan(data.action_plan);
+        setSmartRecommendation(data.smart_recommendation);
         setScenario(data.scenario);
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
-        setRecommendation("Unable to load recommendation at this time.");
+        setActionPlan("Unable to load recommendation at this time.");
       }
     }
 
@@ -52,7 +56,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
   }
 
   return (
-    <div className="bg-[#1c1c21] rounded-3xl p-6 flex flex-col justify-between h-full">
+    <div className="bg-[#1c1c21] rounded-3xl p-6 flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Daily Smart Recommendations</h3>
         <div className="flex items-center space-x-1 text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">
@@ -61,16 +65,32 @@ export function ActionPlan({ derived }: { derived?: any }) {
         </div>
       </div>
 
-      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full">
-        <div className={`${bgClass} p-2 rounded-full mt-1`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+      <div className="flex flex-col gap-4 flex-1 overflow-y-auto pr-2 scrollbar-hide">
+        <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4">
+          <div className={`${bgClass} p-2 rounded-full mt-1 shrink-0`}>
+            <Icon className={`w-5 h-5 ${iconColor}`} />
+          </div>
+          <div>
+            <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {actionPlan}
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {recommendation}
-          </p>
-        </div>
+
+        {smartRecommendation && (
+          <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4">
+            <div className={`bg-purple-500/20 p-2 rounded-full mt-1 shrink-0`}>
+              <Lightbulb className={`w-5 h-5 text-purple-400`} />
+            </div>
+            <div>
+              <h4 className="font-semibold text-lg mb-1">Smart Recommendation</h4>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                {smartRecommendation}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
