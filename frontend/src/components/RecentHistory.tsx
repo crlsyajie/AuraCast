@@ -5,7 +5,8 @@ import { History, Thermometer, Droplets, Sun } from "lucide-react";
 
 type HistoryLog = {
   id: number;
-  recommendation: string;
+  action_plan: string;
+  smart_recommendation: string;
   scenario: string;
   is_followed: boolean;
   timestamp: string;
@@ -53,7 +54,8 @@ export function RecentHistory() {
                     {new Date(log.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                   </span>
                 </div>
-                <p className="text-gray-300 text-sm">{log.recommendation}</p>
+                <p className="text-gray-300 text-sm mb-1">{log.action_plan}</p>
+                <p className="text-gray-400 text-xs italic">Bring: {log.smart_recommendation}</p>
               </div>
 
               <div className="flex items-center space-x-4 shrink-0">
