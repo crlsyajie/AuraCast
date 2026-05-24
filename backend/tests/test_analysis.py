@@ -11,7 +11,8 @@ def test_sunny_high_uv_scenario():
     assert response.status_code == 200
     data = response.json()
     assert data["scenario"] == "Sunny/High UV"
-    assert "High UV" in data["recommendation"]
+    assert "Wear sunscreen" in data["action_plan"]
+    assert "High UV" in data["smart_recommendation"]
 
 def test_rain_windy_scenario():
     response = client.post(
@@ -21,7 +22,8 @@ def test_rain_windy_scenario():
     assert response.status_code == 200
     data = response.json()
     assert data["scenario"] == "Rain/Windy"
-    assert "Heavy rain" in data["recommendation"]
+    assert "Stay indoors" in data["action_plan"]
+    assert "Heavy rain" in data["smart_recommendation"]
 
 def test_cold_scenario():
     response = client.post(
@@ -31,7 +33,8 @@ def test_cold_scenario():
     assert response.status_code == 200
     data = response.json()
     assert data["scenario"] == "Cold"
-    assert "Cold temperatures" in data["recommendation"]
+    assert "Dress warmly" in data["action_plan"]
+    assert "Cold temperatures" in data["smart_recommendation"]
 
 def test_moderate_scenario():
     response = client.post(
@@ -41,4 +44,5 @@ def test_moderate_scenario():
     assert response.status_code == 200
     data = response.json()
     assert data["scenario"] == "Moderate"
-    assert "moderate" in data["recommendation"]
+    assert "great day" in data["action_plan"]
+    assert "moderate" in data["smart_recommendation"]
