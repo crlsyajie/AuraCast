@@ -29,7 +29,8 @@ class WeatherData(BaseModel):
     humidity: float
 
 class ActionPlan(BaseModel):
-    recommendation: str
+    action_plan: str
+    smart_recommendation: str
     scenario: str
 
 @app.post("/v1/analyze", response_model=ActionPlan)
@@ -47,29 +48,34 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            action_plan="Wear sunscreen and limit outdoor exposure.",
+            smart_recommendation="High UV index detected. Pack SPF 50+, sunglasses, and a hat.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            action_plan="Stay indoors if possible.",
+            smart_recommendation="Heavy rain and strong winds expected. Bring an umbrella and wear a windbreaker if going out.",
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            action_plan="Dress warmly in layers.",
+            smart_recommendation="Cold temperatures ahead. Wear a heavy coat, gloves, and a scarf.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            action_plan="Have a great day!",
+            smart_recommendation="Weather is moderate. No special precautions needed, a light jacket might be handy.",
             scenario="Moderate"
         )
 
     # Save recommendation log
     rec_log = models.RecommendationLog(
         weather_log_id=weather_log.id,
-        recommendation=action_plan.recommendation,
+        action_plan=action_plan.action_plan,
+        smart_recommendation=action_plan.smart_recommendation,
         scenario=action_plan.scenario,
         is_followed=False
     )
@@ -86,7 +92,8 @@ def get_history(db: Session = Depends(get_db)):
         weather = log.weather_log
         history.append({
             "id": log.id,
-            "recommendation": log.recommendation,
+            "action_plan": log.action_plan,
+            "smart_recommendation": log.smart_recommendation,
             "scenario": log.scenario,
             "is_followed": log.is_followed,
             "timestamp": log.timestamp,
@@ -115,7 +122,7 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
     else:
         # Use Current Weather data endpoint
         current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&cnt=8&appid={api_key}"
 
         async with httpx.AsyncClient() as client:
             current_res = await client.get(current_url)

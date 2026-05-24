@@ -20,7 +20,8 @@ class RecommendationLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     weather_log_id = Column(Integer, ForeignKey("weather_logs.id"))
-    recommendation = Column(String, nullable=False)
+    action_plan = Column(String, nullable=False)
+    smart_recommendation = Column(String, nullable=False)
     scenario = Column(String, nullable=False)
     is_followed = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
