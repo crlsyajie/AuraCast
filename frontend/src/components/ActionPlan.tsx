@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 
 export function ActionPlan({ derived }: { derived?: any }) {
-  const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
-  const [scenario, setScenario] = useState<string>("");
+  const [dailyActionPlan, setDailyActionPlan] = useState<string>("Waiting for weather data...");
+  const [smartRecommendation, setSmartRecommendation] = useState<string>("");
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -26,11 +26,11 @@ export function ActionPlan({ derived }: { derived?: any }) {
           }),
         });
         const data = await res.json();
-        setRecommendation(data.recommendation);
-        setScenario(data.scenario);
+        setDailyActionPlan(data.daily_action_plan);
+        setSmartRecommendation(data.smart_recommendation);
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
-        setRecommendation("Unable to load recommendation at this time.");
+        setDailyActionPlan("Unable to load recommendation at this time.");
       }
     }
 
@@ -41,11 +41,11 @@ export function ActionPlan({ derived }: { derived?: any }) {
   let iconColor = "text-blue-400";
   let bgClass = "bg-blue-500/20";
 
-  if (scenario === "Rain/Windy" || scenario === "Sunny/High UV") {
+  if (smartRecommendation === "Rain/Windy" || smartRecommendation === "Sunny/High UV") {
     Icon = AlertTriangle;
     iconColor = "text-yellow-400";
     bgClass = "bg-yellow-500/20";
-  } else if (scenario === "Moderate") {
+  } else if (smartRecommendation === "Moderate") {
     Icon = ShieldCheck;
     iconColor = "text-green-400";
     bgClass = "bg-green-500/20";
@@ -68,7 +68,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
         <div>
           <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
           <p className="text-gray-300 text-sm leading-relaxed">
-            {recommendation}
+            {dailyActionPlan}
           </p>
         </div>
       </div>
