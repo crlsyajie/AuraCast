@@ -47,22 +47,22 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     action_plan = None
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
-            recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
+            recommendation="High UV detected. Bring sunglasses, wear sunscreen, and plan outdoor activities for early morning or late afternoon.",
             scenario="Sunny/High UV"
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
-            recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
+            recommendation="Heavy rain and strong winds expected. Bring an umbrella and a windbreaker, and try to stay indoors if possible.",
             scenario="Rain/Windy"
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
-            recommendation="Cold temperatures. Dress warmly in layers.",
+            recommendation="Cold temperatures. Bring a heavy coat and dress warmly in layers.",
             scenario="Cold"
         )
     else:
         action_plan = ActionPlan(
-            recommendation="Weather is moderate. Have a great day!",
+            recommendation="Weather is moderate. Bring light layers and enjoy a comfortable day outdoors!",
             scenario="Moderate"
         )
 
@@ -115,7 +115,7 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
     else:
         # Use Current Weather data endpoint
         current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}&cnt=8"
 
         async with httpx.AsyncClient() as client:
             current_res = await client.get(current_url)
