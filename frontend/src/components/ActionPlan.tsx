@@ -6,6 +6,7 @@ import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +29,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        setSmartRecommendations(data.smart_recommendations || []);
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -61,16 +63,32 @@ export function ActionPlan({ derived }: { derived?: any }) {
         </div>
       </div>
 
-      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full">
-        <div className={`${bgClass} p-2 rounded-full mt-1`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+      <div className="bg-[#2c2c31] rounded-2xl p-4 flex flex-col space-y-4 h-full overflow-y-auto">
+        <div className="flex items-start space-x-4">
+          <div className={`${bgClass} p-2 rounded-full mt-1`}>
+            <Icon className={`w-5 h-5 ${iconColor}`} />
+          </div>
+          <div>
+            <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {recommendation}
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {recommendation}
-          </p>
-        </div>
+
+        {smartRecommendations.length > 0 && (
+          <div className="mt-4 border-t border-gray-700 pt-4">
+            <h4 className="font-semibold text-md mb-2 text-gray-200">Smart Recommendations</h4>
+            <ul className="space-y-2">
+              {smartRecommendations.map((rec, idx) => (
+                <li key={idx} className="flex items-center space-x-2 text-sm text-gray-300 bg-[#3a3a40] p-2 rounded-lg">
+                  <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                  <span>{rec}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
