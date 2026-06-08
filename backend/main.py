@@ -31,6 +31,7 @@ class WeatherData(BaseModel):
 class ActionPlan(BaseModel):
     recommendation: str
     scenario: str
+    smart_recommendations: list[str]
 
 @app.post("/v1/analyze", response_model=ActionPlan)
 def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
@@ -45,25 +46,57 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     db.refresh(weather_log)
 
     action_plan = None
+    smart_recs = []
+
+    if data.uvi >= 8:
+        smart_recs.append("Wear UV-blocking sunglasses.")
+        smart_recs.append("Apply SPF 50+ sunscreen.")
+    elif data.uvi >= 5:
+        smart_recs.append("Wear sunglasses and apply sunscreen.")
+
+    if data.pop >= 50:
+        smart_recs.append("Bring an umbrella or raincoat.")
+    elif data.pop >= 20:
+        smart_recs.append("Might rain. Keep an umbrella handy.")
+
+    if data.wind >= 20:
+        smart_recs.append("Secure loose outdoor items.")
+        smart_recs.append("Wear a windbreaker.")
+
+    if data.temp < 10:
+        smart_recs.append("Wear a thick winter jacket.")
+        smart_recs.append("Dress warmly in layers.")
+    elif data.temp < 20:
+        smart_recs.append("Bring a light jacket or sweater.")
+    elif data.temp > 30:
+        smart_recs.append("Stay hydrated and wear breathable clothes.")
+
+    if not smart_recs:
+        smart_recs.append("Enjoy your day with standard clothing.")
+
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
+            scenario="Sunny/High UV",
+            smart_recommendations=smart_recs
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
+            scenario="Rain/Windy",
+            smart_recommendations=smart_recs
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
             recommendation="Cold temperatures. Dress warmly in layers.",
-            scenario="Cold"
+            scenario="Cold",
+            smart_recommendations=smart_recs
         )
     else:
         action_plan = ActionPlan(
             recommendation="Weather is moderate. Have a great day!",
-            scenario="Moderate"
+            scenario="Moderate",
+            smart_recommendations=smart_recs
         )
 
     # Save recommendation log
@@ -115,7 +148,7 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
     else:
         # Use Current Weather data endpoint
         current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}&cnt=8"
 
         async with httpx.AsyncClient() as client:
             current_res = await client.get(current_url)

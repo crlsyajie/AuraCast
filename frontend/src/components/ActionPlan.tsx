@@ -6,6 +6,7 @@ import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +29,9 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        if (data.smart_recommendations) {
+          setSmartRecommendations(data.smart_recommendations);
+        }
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -65,11 +69,24 @@ export function ActionPlan({ derived }: { derived?: any }) {
         <div className={`${bgClass} p-2 rounded-full mt-1`}>
           <Icon className={`w-5 h-5 ${iconColor}`} />
         </div>
-        <div>
+        <div className="w-full">
           <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
+          <p className="text-gray-300 text-sm leading-relaxed mb-4">
             {recommendation}
           </p>
+          {smartRecommendations.length > 0 && (
+            <div className="mt-2 space-y-2">
+              <h5 className="font-medium text-sm text-gray-400 uppercase tracking-wider">Smart Recommendations</h5>
+              <ul className="space-y-2">
+                {smartRecommendations.map((rec, index) => (
+                  <li key={index} className="flex items-center space-x-2 text-sm text-gray-300 bg-[#3a3a40] p-2 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>
