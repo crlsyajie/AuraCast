@@ -6,6 +6,7 @@ import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +29,9 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        if (data.smart_recommendations) {
+          setSmartRecommendations(data.smart_recommendations);
+        }
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -61,16 +65,31 @@ export function ActionPlan({ derived }: { derived?: any }) {
         </div>
       </div>
 
-      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full">
-        <div className={`${bgClass} p-2 rounded-full mt-1`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+      <div className="flex flex-col gap-3 overflow-y-auto">
+        <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4">
+          <div className={`${bgClass} p-2 rounded-full mt-1`}>
+            <Icon className={`w-5 h-5 ${iconColor}`} />
+          </div>
+          <div>
+            <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {recommendation}
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {recommendation}
-          </p>
-        </div>
+
+        {smartRecommendations.map((rec, index) => (
+          <div key={index} className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4">
+            <div className="bg-gray-500/20 p-2 rounded-full mt-1">
+              <ShieldCheck className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="flex items-center h-full">
+              <p className="text-gray-300 text-sm leading-relaxed">
+                {rec}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
