@@ -6,6 +6,7 @@ import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +29,9 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        if (data.smart_recommendations) {
+          setSmartRecommendations(data.smart_recommendations);
+        }
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -72,6 +76,17 @@ export function ActionPlan({ derived }: { derived?: any }) {
           </p>
         </div>
       </div>
+
+      {smartRecommendations.length > 0 && (
+        <div className="mt-4 flex gap-2 flex-wrap">
+          {smartRecommendations.map((rec, idx) => (
+            <div key={idx} className="bg-[#2c2c31] text-xs px-3 py-1.5 rounded-full text-gray-300 border border-gray-700/50 flex items-center space-x-1">
+               <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+               <span>{rec}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
