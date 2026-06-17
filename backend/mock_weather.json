@@ -1,6 +1,6 @@
 {
   "current": {
-    "coord": { "lon": 121.0583, "lat": 13.7565 },
+    "coord": { "lon": 121.05, "lat": 13.75 },
     "weather": [ { "id": 801, "main": "Clouds", "description": "few clouds", "icon": "02d" } ],
     "base": "stations",
     "main": {
@@ -14,7 +14,7 @@
     "sys": { "country": "PH", "sunrise": 1710540000, "sunset": 1710583200 },
     "timezone": 28800,
     "id": 1726050,
-    "name": "Batangas",
+    "name": "Batangas City",
     "cod": 200
   },
   "forecast": {
