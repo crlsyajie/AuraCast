@@ -42,3 +42,33 @@ def test_moderate_scenario():
     data = response.json()
     assert data["scenario"] == "Moderate"
     assert "moderate" in data["recommendation"]
+
+def test_hot_humid_scenario():
+    response = client.post(
+        "/v1/analyze",
+        json={"temp": 32.0, "pop": 0.0, "uvi": 5.0, "wind": 5.0, "humidity": 80.0}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["scenario"] == "Hot/Humid"
+    assert "Hot and humid" in data["recommendation"]
+
+def test_hot_scenario():
+    response = client.post(
+        "/v1/analyze",
+        json={"temp": 32.0, "pop": 0.0, "uvi": 5.0, "wind": 5.0, "humidity": 40.0}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["scenario"] == "Hot"
+    assert "Hot temperatures" in data["recommendation"]
+
+def test_rain_scenario():
+    response = client.post(
+        "/v1/analyze",
+        json={"temp": 25.0, "pop": 60.0, "uvi": 2.0, "wind": 5.0, "humidity": 90.0}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["scenario"] == "Rain"
+    assert "Rain expected" in data["recommendation"]

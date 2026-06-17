@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Info, AlertTriangle, ShieldCheck, Umbrella, Flame, ThermometerSnowflake, Sun } from "lucide-react";
 
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
@@ -41,10 +41,26 @@ export function ActionPlan({ derived }: { derived?: any }) {
   let iconColor = "text-blue-400";
   let bgClass = "bg-blue-500/20";
 
-  if (scenario === "Rain/Windy" || scenario === "Sunny/High UV") {
+  if (scenario === "Rain/Windy") {
     Icon = AlertTriangle;
     iconColor = "text-yellow-400";
     bgClass = "bg-yellow-500/20";
+  } else if (scenario === "Rain") {
+    Icon = Umbrella;
+    iconColor = "text-blue-400";
+    bgClass = "bg-blue-500/20";
+  } else if (scenario === "Hot/Humid" || scenario === "Hot") {
+    Icon = Flame;
+    iconColor = "text-orange-400";
+    bgClass = "bg-orange-500/20";
+  } else if (scenario === "Sunny/High UV") {
+    Icon = Sun;
+    iconColor = "text-yellow-400";
+    bgClass = "bg-yellow-500/20";
+  } else if (scenario === "Cold") {
+    Icon = ThermometerSnowflake;
+    iconColor = "text-cyan-400";
+    bgClass = "bg-cyan-500/20";
   } else if (scenario === "Moderate") {
     Icon = ShieldCheck;
     iconColor = "text-green-400";
