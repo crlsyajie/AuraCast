@@ -23,6 +23,16 @@ def test_rain_windy_scenario():
     assert data["scenario"] == "Rain/Windy"
     assert "Heavy rain" in data["recommendation"]
 
+def test_hot_humid_scenario():
+    response = client.post(
+        "/v1/analyze",
+        json={"temp": 29.0, "pop": 10.0, "uvi": 5.0, "wind": 5.0, "humidity": 75.0}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["scenario"] == "Hot/Humid"
+    assert "Hot and humid" in data["recommendation"]
+
 def test_cold_scenario():
     response = client.post(
         "/v1/analyze",
@@ -32,6 +42,16 @@ def test_cold_scenario():
     data = response.json()
     assert data["scenario"] == "Cold"
     assert "Cold temperatures" in data["recommendation"]
+
+def test_moderate_rain_possible_scenario():
+    response = client.post(
+        "/v1/analyze",
+        json={"temp": 25.0, "pop": 30.0, "uvi": 5.0, "wind": 5.0, "humidity": 60.0}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["scenario"] == "Moderate/Rain Possible"
+    assert "light rain" in data["recommendation"]
 
 def test_moderate_scenario():
     response = client.post(
