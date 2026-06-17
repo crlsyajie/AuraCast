@@ -1,0 +1,17 @@
+INFO:     Started server process [3693]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:45736 - "POST /v1/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39148 - "GET /v1/weather?lat=13.7565&lon=121.0583 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39140 - "GET /v1/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39140 - "OPTIONS /v1/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39148 - "POST /v1/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60796 - "GET /v1/weather?lat=13.7565&lon=121.0583 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60780 - "GET /v1/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60780 - "OPTIONS /v1/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60796 - "POST /v1/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46870 - "GET /v1/weather?lat=13.7565&lon=121.0583 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46854 - "GET /v1/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46854 - "OPTIONS /v1/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46870 - "POST /v1/analyze HTTP/1.1" 200 OK
