@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from typing import List
 import os
 import httpx
 from dotenv import load_dotenv
@@ -31,6 +32,7 @@ class WeatherData(BaseModel):
 class ActionPlan(BaseModel):
     recommendation: str
     scenario: str
+    smart_recommendations: List[str]
 
 @app.post("/v1/analyze", response_model=ActionPlan)
 def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
@@ -48,22 +50,26 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
+            scenario="Sunny/High UV",
+            smart_recommendations=["Wear Sunglasses", "Apply SPF 50+", "Stay in shade during peak hours"]
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
+            scenario="Rain/Windy",
+            smart_recommendations=["Carry an umbrella", "Wear waterproof boots", "Secure loose outdoor items"]
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
             recommendation="Cold temperatures. Dress warmly in layers.",
-            scenario="Cold"
+            scenario="Cold",
+            smart_recommendations=["Wear a heavy coat", "Use gloves and scarf", "Drink warm beverages"]
         )
     else:
         action_plan = ActionPlan(
             recommendation="Weather is moderate. Have a great day!",
-            scenario="Moderate"
+            scenario="Moderate",
+            smart_recommendations=["Perfect day for a walk", "Light clothing is fine", "Stay hydrated"]
         )
 
     # Save recommendation log
@@ -115,7 +121,7 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
     else:
         # Use Current Weather data endpoint
         current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}&cnt=8"
 
         async with httpx.AsyncClient() as client:
             current_res = await client.get(current_url)
