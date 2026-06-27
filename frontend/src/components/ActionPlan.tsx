@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Info, AlertTriangle, ShieldCheck, CheckCircle } from "lucide-react";
 
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +29,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        setSmartRecommendations(data.smart_recommendations || []);
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -61,15 +63,27 @@ export function ActionPlan({ derived }: { derived?: any }) {
         </div>
       </div>
 
-      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full">
-        <div className={`${bgClass} p-2 rounded-full mt-1`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
-        </div>
-        <div>
-          <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {recommendation}
-          </p>
+      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full flex-col md:flex-row">
+        <div className="flex items-start space-x-4 w-full">
+            <div className={`${bgClass} p-2 rounded-full mt-1 shrink-0`}>
+                <Icon className={`w-5 h-5 ${iconColor}`} />
+            </div>
+            <div className="w-full">
+                <h4 className="font-semibold text-lg mb-1">Daily Action Plan</h4>
+                <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                    {recommendation}
+                </p>
+                {smartRecommendations.length > 0 && (
+                    <ul className="space-y-2 mt-4">
+                        {smartRecommendations.map((rec, index) => (
+                            <li key={index} className="flex items-start space-x-2">
+                                <CheckCircle className="w-4 h-4 text-blue-400 mt-1 shrink-0" />
+                                <span className="text-gray-300 text-sm">{rec}</span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </div>
       </div>
     </div>
