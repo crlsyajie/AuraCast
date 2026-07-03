@@ -28,9 +28,12 @@ class WeatherData(BaseModel):
     wind: float
     humidity: float
 
+from typing import List
+
 class ActionPlan(BaseModel):
     recommendation: str
     scenario: str
+    smart_recommendations: List[str] = []
 
 @app.post("/v1/analyze", response_model=ActionPlan)
 def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
@@ -48,22 +51,26 @@ def analyze_weather(data: WeatherData, db: Session = Depends(get_db)):
     if data.uvi >= 8 and data.pop < 20:
         action_plan = ActionPlan(
             recommendation="High UV detected. Wear sunscreen and limit outdoor exposure.",
-            scenario="Sunny/High UV"
+            scenario="Sunny/High UV",
+            smart_recommendations=["Wear sunscreen (SPF 30+)", "Wear sunglasses", "Limit outdoor activities between 10 AM and 4 PM", "Stay hydrated"]
         )
     elif data.pop >= 50 and data.wind >= 20:
         action_plan = ActionPlan(
             recommendation="Heavy rain and strong winds expected. Stay indoors if possible.",
-            scenario="Rain/Windy"
+            scenario="Rain/Windy",
+            smart_recommendations=["Bring an umbrella", "Wear a raincoat and waterproof boots", "Secure loose outdoor items", "Drive carefully"]
         )
     elif data.temp < 10:
         action_plan = ActionPlan(
             recommendation="Cold temperatures. Dress warmly in layers.",
-            scenario="Cold"
+            scenario="Cold",
+            smart_recommendations=["Wear a heavy coat", "Bring gloves and a hat", "Drink warm beverages", "Keep your home well-heated"]
         )
     else:
         action_plan = ActionPlan(
             recommendation="Weather is moderate. Have a great day!",
-            scenario="Moderate"
+            scenario="Moderate",
+            smart_recommendations=["Enjoy outdoor activities", "Wear comfortable clothing", "Keep a light jacket handy just in case"]
         )
 
     # Save recommendation log
@@ -115,7 +122,7 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
     else:
         # Use Current Weather data endpoint
         current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&cnt=8&appid={api_key}"
 
         async with httpx.AsyncClient() as client:
             current_res = await client.get(current_url)
@@ -128,6 +135,9 @@ async def get_weather(lat: float = 13.7565, lon: float = 121.0583):
 
             current = current_res.json()
             forecast = forecast_res.json()
+
+    # Limit to 8 items (24 hours in 3-hour increments) if using mock data or if cnt wasn't respected
+    forecast["list"] = forecast["list"][:8]
 
     # Pop is not directly available in current, grab it from forecast for today
     pop = forecast["list"][0].get("pop", 0) * 100
