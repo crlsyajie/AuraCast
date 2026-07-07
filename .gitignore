@@ -8,3 +8,7 @@ __pycache__/
 __pycache__/
 *.log
 *.db
+backend/venv/
+frontend_output.log
+backend_output.log
+backend/weather.db
