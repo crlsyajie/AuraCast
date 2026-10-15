@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Info, AlertTriangle, ShieldCheck, CheckCircle } from "lucide-react";
 
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +29,9 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        if (data.smart_recommendations) {
+          setSmartRecommendations(data.smart_recommendations);
+        }
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -52,7 +56,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
   }
 
   return (
-    <div className="bg-[#1c1c21] rounded-3xl p-6 flex flex-col justify-between h-full">
+    <div className="bg-[#1c1c21] rounded-3xl p-6 flex flex-col justify-between h-full overflow-y-auto">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Daily Smart Recommendations</h3>
         <div className="flex items-center space-x-1 text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">
@@ -61,7 +65,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
         </div>
       </div>
 
-      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 h-full">
+      <div className="bg-[#2c2c31] rounded-2xl p-4 flex items-start space-x-4 mb-4">
         <div className={`${bgClass} p-2 rounded-full mt-1`}>
           <Icon className={`w-5 h-5 ${iconColor}`} />
         </div>
@@ -72,6 +76,20 @@ export function ActionPlan({ derived }: { derived?: any }) {
           </p>
         </div>
       </div>
+
+      {smartRecommendations.length > 0 && (
+        <div className="bg-[#2c2c31] rounded-2xl p-4 flex flex-col h-full justify-center">
+          <h4 className="font-semibold text-lg mb-3">Smart Recommendations</h4>
+          <ul className="space-y-3">
+            {smartRecommendations.map((rec, index) => (
+              <li key={index} className="flex items-center space-x-3 text-sm text-gray-300">
+                <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                <span>{rec}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
