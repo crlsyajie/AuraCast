@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Info, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Info, AlertTriangle, ShieldCheck, CheckCircle } from "lucide-react";
 
 export function ActionPlan({ derived }: { derived?: any }) {
   const [recommendation, setRecommendation] = useState<string>("Waiting for weather data...");
   const [scenario, setScenario] = useState<string>("");
+  const [smartRecommendations, setSmartRecommendations] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchActionPlan() {
@@ -28,6 +29,7 @@ export function ActionPlan({ derived }: { derived?: any }) {
         const data = await res.json();
         setRecommendation(data.recommendation);
         setScenario(data.scenario);
+        setSmartRecommendations(data.smart_recommendations || []);
       } catch (error) {
         console.error("Failed to fetch action plan:", error);
         setRecommendation("Unable to load recommendation at this time.");
@@ -70,6 +72,16 @@ export function ActionPlan({ derived }: { derived?: any }) {
           <p className="text-gray-300 text-sm leading-relaxed">
             {recommendation}
           </p>
+          {smartRecommendations.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {smartRecommendations.map((rec, idx) => (
+                <div key={idx} className="bg-[#3a3a40] text-gray-200 text-xs px-3 py-1.5 rounded-full flex items-center space-x-1">
+                  <CheckCircle className="w-3 h-3 text-green-400" />
+                  <span>{rec}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
